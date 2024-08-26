@@ -13,9 +13,10 @@ type TimeRange struct {
 }
 
 type Poller struct {
-	ApiKey    string
-	Interval  time.Duration
-	DataStore *map[string]bool
+	ApiKey     string
+	Interval   time.Duration
+	DataStore  *map[string]bool
+	DiscordAPI *DiscordAPI
 }
 
 func New(newDataStore *map[string]bool) (*Poller, error) {
@@ -34,10 +35,17 @@ func New(newDataStore *map[string]bool) (*Poller, error) {
 		return nil, err
 	}
 
+	newDiscordApi := &DiscordAPI{
+		BaseUrl:                        "https://discord.com/api/v10",
+		ListMessageFromChannelEndpoint: "/channels/1245256033530548268/messages",
+		ApiKey:                         apiKey,
+	}
+
 	return &Poller{
-		ApiKey:    apiKey,
-		Interval:  time.Duration(interval) * time.Minute,
-		DataStore: newDataStore,
+		ApiKey:     apiKey,
+		Interval:   time.Duration(interval) * time.Minute,
+		DataStore:  newDataStore,
+		DiscordAPI: newDiscordApi,
 	}, nil
 }
 
@@ -57,6 +65,11 @@ func getEnv(key, defaultValue string, required bool) (string, error) {
 func (p *Poller) Poll() {
 	for {
 		fmt.Println("polling")
+		messages, err := p.DiscordAPI.FetchDiscordMessagesFromChannel()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("Messages :", messages)
 		time.Sleep(p.Interval)
 	}
 }
