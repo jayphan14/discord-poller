@@ -12,7 +12,6 @@ type DiscordAPI struct {
 	BaseUrl                        string
 	ListMessageFromChannelEndpoint string
 	ApiKey                         string
-	// FetchDiscordMessagesFromChannel func() ([]any, error)
 }
 
 // FetchDiscordMessages sends a GET request to the Discord API and returns the response body
