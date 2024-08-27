@@ -6,9 +6,12 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
 	app, err := New()
 	if err != nil {
 		fmt.Println("Error starting app:", err)
