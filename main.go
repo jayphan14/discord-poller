@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"discord-poller/poller"
+	"discord-poller/util"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -28,20 +31,33 @@ func main() {
 }
 
 type App struct {
-	DataStore map[string]bool
-	Poller    *poller.Poller
+	Poller       *poller.Poller
+	DBConnection *pgx.Conn
 }
 
 func New() (*App, error) {
-	newDataStore := map[string]bool{}
-	poller, err := poller.New(&newDataStore)
+	DBConnectionString, err := util.GetEnv("DATABASE_URL", "", true)
+	if err != nil {
+		return nil, err
+	}
 
+	fmt.Println(DBConnectionString)
+	conn, err := pgx.Connect(context.Background(), DBConnectionString)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close(context.Background())
+
+	fmt.Println("Connected To Database")
+
+	// Create poller
+	poller, err := poller.New(conn)
 	if err != nil {
 		return nil, err
 	}
 
 	return &App{
-		DataStore: newDataStore,
-		Poller:    poller,
+		Poller:       poller,
+		DBConnection: conn,
 	}, nil
 }

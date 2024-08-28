@@ -1,10 +1,13 @@
 package poller
 
 import (
+	"discord-poller/db"
+	"discord-poller/util"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type TimeRange struct {
@@ -15,17 +18,17 @@ type TimeRange struct {
 type Poller struct {
 	ApiKey     string
 	Interval   time.Duration
-	DataStore  *map[string]bool
 	DiscordAPI *DiscordAPI
+	Queries    *db.Queries
 }
 
-func New(newDataStore *map[string]bool) (*Poller, error) {
-	apiKey, err := getEnv("API_KEY", "", true)
+func New(conn *pgx.Conn) (*Poller, error) {
+	apiKey, err := util.GetEnv("API_KEY", "", true)
 	if err != nil {
 		return nil, err
 	}
 
-	intervalStr, err := getEnv("POLL_INTERVAL", "10", false)
+	intervalStr, err := util.GetEnv("POLL_INTERVAL", "10", false)
 	if err != nil {
 		return nil, err
 	}
@@ -44,21 +47,9 @@ func New(newDataStore *map[string]bool) (*Poller, error) {
 	return &Poller{
 		ApiKey:     apiKey,
 		Interval:   time.Duration(interval) * time.Minute,
-		DataStore:  newDataStore,
 		DiscordAPI: newDiscordApi,
+		Queries:    db.New(conn),
 	}, nil
-}
-
-// getEnv retrieves the environment variable, or returns the default value if it's not set
-func getEnv(key, defaultValue string, required bool) (string, error) {
-	if value, exists := os.LookupEnv(key); exists {
-		return value, nil
-	}
-
-	if required {
-		return "", fmt.Errorf("Can't find %v in env var", key)
-	}
-	return defaultValue, nil
 }
 
 // Poll starts polling from the channel that we want
