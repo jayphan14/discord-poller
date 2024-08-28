@@ -41,7 +41,6 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	fmt.Println(DBConnectionString)
 	conn, err := pgx.Connect(context.Background(), DBConnectionString)
 	if err != nil {
 		return nil, err

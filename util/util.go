@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// getEnv retrieves the environment variable, or returns the default value if it's not set
+// GetEnv retrieves the environment variable, or returns the default value if it's not set
 func GetEnv(key, defaultValue string, required bool) (string, error) {
 	if value, exists := os.LookupEnv(key); exists {
 		return value, nil
